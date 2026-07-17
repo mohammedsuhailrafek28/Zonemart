@@ -28,7 +28,7 @@ try {
     user_metadata: {
       full_name: "Flash Integration Customer",
       role: "customer",
-      zone: "Anna Nagar",
+      zone: "Velachery",
     },
   });
   if (createError) throw createError;
@@ -52,7 +52,9 @@ try {
     {
       p_item_name: "HDMI to VGA Adapter",
       p_description: "Needed for a projector demo",
-      p_category: "Electronics",
+      // Circuit Corner is in Anna Nagar and does not list Stationery.
+      // A successful offer therefore verifies global vendor visibility.
+      p_category: "Stationery",
       p_quantity: 2,
       p_max_price: 1500,
       p_urgency_minutes: 30,

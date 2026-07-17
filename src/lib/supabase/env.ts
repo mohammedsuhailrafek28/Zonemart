@@ -1,5 +1,4 @@
-function required(name: "NEXT_PUBLIC_SUPABASE_URL" | "NEXT_PUBLIC_SUPABASE_ANON_KEY") {
-  const value = process.env[name];
+function required(value: string | undefined, name: string) {
   if (!value) {
     throw new Error(`Missing required environment variable: ${name}`);
   }
@@ -8,7 +7,10 @@ function required(name: "NEXT_PUBLIC_SUPABASE_URL" | "NEXT_PUBLIC_SUPABASE_ANON_
 
 export function getPublicSupabaseEnv() {
   return {
-    url: required("NEXT_PUBLIC_SUPABASE_URL"),
-    anonKey: required("NEXT_PUBLIC_SUPABASE_ANON_KEY"),
+    url: required(process.env.NEXT_PUBLIC_SUPABASE_URL, "NEXT_PUBLIC_SUPABASE_URL"),
+    anonKey: required(
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+    ),
   };
 }

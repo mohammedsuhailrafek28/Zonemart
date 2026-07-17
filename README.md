@@ -2,8 +2,22 @@
 
 Phases B1–B4 provide the Next.js route-handler foundation, Supabase schema,
 authentication helpers, row-level security, repeatable demo data, and the atomic
-listed-product and Flash Request commerce paths. The project intentionally contains
-no UI.
+listed-product and Flash Request commerce paths. Phase B5A adds the complete
+customer-facing web journey while preserving those backend contracts.
+
+## Customer frontend
+
+- `/` provides the public product story and real customer/vendor entry points.
+- `/auth/sign-in` and `/auth/sign-up` use Supabase email/password authentication.
+- `/shop`, `/cart`, and `/orders` cover catalogue discovery, atomic reservation,
+  pickup countdowns, status and cancellation.
+- `/flash-requests`, `/flash-requests/new`, and `/flash-requests/[requestId]`
+  cover request creation, merchant-offer comparison, acceptance and cancellation.
+
+The browser uses only `NEXT_PUBLIC_SUPABASE_URL` and
+`NEXT_PUBLIC_SUPABASE_ANON_KEY`. Never expose `SUPABASE_SERVICE_ROLE_KEY`.
+Stock, totals, pickup codes and expiry decisions remain server/database
+authoritative.
 
 ## Local setup
 

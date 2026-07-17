@@ -5,6 +5,10 @@ coverage/
 *.log
 .env
 .env.local
+.dev-server*.log
+playwright-report/
+test-results/
+.playwright-artifacts/
 .env.*.local
 .vercel/
 supabase/.branches/

@@ -15,7 +15,8 @@
     "test:flash-integration": "node --env-file-if-exists=.env.local scripts/flash-integration-smoke.mjs",
     "test:flash-concurrency": "node --env-file-if-exists=.env.local scripts/verify-flash-concurrency.mjs",
     "test:b4-integration": "node --env-file-if-exists=.env.local scripts/b4-integration-smoke.mjs",
-    "test:b4-concurrency": "node --env-file-if-exists=.env.local scripts/verify-b4-concurrency.mjs"
+    "test:b4-concurrency": "node --env-file-if-exists=.env.local scripts/verify-b4-concurrency.mjs",
+    "test:e2e": "node --env-file-if-exists=.env.local node_modules/@playwright/test/cli.js test"
   },
   "dependencies": {
     "@supabase/ssr": "^0.7.0",
@@ -28,11 +29,16 @@
     "zod": "^3.24.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@types/node": "^22.13.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "eslint": "^9.22.0",
     "eslint-config-next": "^16.2.10",
+    "jsdom": "^29.1.1",
     "typescript": "^5.8.0",
     "vitest": "^3.2.0"
   }

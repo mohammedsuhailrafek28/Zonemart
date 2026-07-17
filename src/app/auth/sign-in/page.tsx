@@ -20,10 +20,10 @@ function SignInForm() {
     if (portal === "vendor" && profile?.role !== "vendor") {
       await supabase.auth.signOut(); setError("This account does not have vendor access."); setBusy(false); return;
     }
-    if (portal === "admin") {
-      await supabase.auth.signOut(); setError("No administrator role is provisioned in the current ZoneMart backend."); setBusy(false); return;
+    if (portal === "admin" && String(profile?.role) !== "admin") {
+      await supabase.auth.signOut(); setError("This account does not have administrator access."); setBusy(false); return;
     }
-    router.replace(profile?.role === "vendor" ? "/vendor" : search.get("next") || "/shop");
+    router.replace(portal === "admin" ? "/admin" : profile?.role === "vendor" ? "/vendor" : search.get("next") || "/shop");
     router.refresh();
   }
   return <div className={`auth-shell ${portal === "vendor" ? "vendor-auth" : ""}`}><section className="card auth-card"><span className="eyebrow">{portal === "vendor" ? "Vendor portal" : portal === "admin" ? "Admin portal" : "Welcome back"}</span><h2>{portal === "vendor" ? "Turn nearby demand into store visits." : "Sign in to ZoneMart"}</h2><p className="muted">{portal === "vendor" ? "Manage real inventory, pickups and eligible Flash Requests." : "Access your cart, reservations and Flash Requests."}</p>

@@ -211,6 +211,8 @@ export type Database = {
       }
       orders: {
         Row: {
+          cancelled_at: string | null
+          cancelled_by: string | null
           completed_at: string | null
           created_at: string
           expires_at: string
@@ -218,12 +220,15 @@ export type Database = {
           flash_request_id: string | null
           id: string
           pickup_code: string
+          ready_at: string | null
           status: Database["public"]["Enums"]["order_status"]
           store_id: string
           total: number
           user_id: string
         }
         Insert: {
+          cancelled_at?: string | null
+          cancelled_by?: string | null
           completed_at?: string | null
           created_at?: string
           expires_at: string
@@ -231,12 +236,15 @@ export type Database = {
           flash_request_id?: string | null
           id?: string
           pickup_code: string
+          ready_at?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           store_id: string
           total: number
           user_id: string
         }
         Update: {
+          cancelled_at?: string | null
+          cancelled_by?: string | null
           completed_at?: string | null
           created_at?: string
           expires_at?: string
@@ -244,6 +252,7 @@ export type Database = {
           flash_request_id?: string | null
           id?: string
           pickup_code?: string
+          ready_at?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           store_id?: string
           total?: number
@@ -283,6 +292,7 @@ export type Database = {
       products: {
         Row: {
           active: boolean
+          archived_at: string | null
           category: string
           created_at: string
           description: string
@@ -296,6 +306,7 @@ export type Database = {
         }
         Insert: {
           active?: boolean
+          archived_at?: string | null
           category: string
           created_at?: string
           description?: string
@@ -309,6 +320,7 @@ export type Database = {
         }
         Update: {
           active?: boolean
+          archived_at?: string | null
           category?: string
           created_at?: string
           description?: string
@@ -365,30 +377,42 @@ export type Database = {
       stores: {
         Row: {
           active: boolean
+          address: string | null
           category_tags: string[]
+          contact_display: string | null
           created_at: string
+          description: string | null
           id: string
           name: string
+          operating_hours: string | null
           owner_id: string
           verified: boolean
           zone: string
         }
         Insert: {
           active?: boolean
+          address?: string | null
           category_tags?: string[]
+          contact_display?: string | null
           created_at?: string
+          description?: string | null
           id?: string
           name: string
+          operating_hours?: string | null
           owner_id: string
           verified?: boolean
           zone: string
         }
         Update: {
           active?: boolean
+          address?: string | null
           category_tags?: string[]
+          contact_display?: string | null
           created_at?: string
+          description?: string | null
           id?: string
           name?: string
+          operating_hours?: string | null
           owner_id?: string
           verified?: boolean
           zone?: string
@@ -440,6 +464,10 @@ export type Database = {
         }[]
       }
       assert_customer: { Args: never; Returns: string }
+      assert_marketplace_actor: {
+        Args: never
+        Returns: Database["public"]["Enums"]["user_role"]
+      }
       assert_vendor: { Args: never; Returns: string }
       cancel_flash_request: {
         Args: { p_request_id: string }
@@ -484,6 +512,10 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      customer_cancel_order: {
+        Args: { p_order_id: string }
+        Returns: undefined
       }
       expire_flash_marketplace: {
         Args: never
@@ -540,6 +572,108 @@ export type Database = {
         SetofOptions: {
           from: "*"
           to: "flash_offers"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      vendor_archive_product: {
+        Args: { p_product_id: string }
+        Returns: undefined
+      }
+      vendor_cancel_order: { Args: { p_order_id: string }; Returns: undefined }
+      vendor_complete_order: {
+        Args: { p_order_id: string; p_pickup_code: string }
+        Returns: string
+      }
+      vendor_create_product: {
+        Args: {
+          p_active: boolean
+          p_category: string
+          p_description: string
+          p_image_url: string
+          p_name: string
+          p_price: number
+          p_stock: number
+        }
+        Returns: {
+          active: boolean
+          archived_at: string | null
+          category: string
+          created_at: string
+          description: string
+          id: string
+          image_url: string | null
+          name: string
+          price: number
+          stock: number
+          store_id: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "products"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      vendor_mark_order_ready: { Args: { p_order_id: string }; Returns: string }
+      vendor_update_product: {
+        Args: {
+          p_active: boolean
+          p_category: string
+          p_description: string
+          p_image_url: string
+          p_name: string
+          p_price: number
+          p_product_id: string
+          p_stock: number
+        }
+        Returns: {
+          active: boolean
+          archived_at: string | null
+          category: string
+          created_at: string
+          description: string
+          id: string
+          image_url: string | null
+          name: string
+          price: number
+          stock: number
+          store_id: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "products"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      vendor_update_store: {
+        Args: {
+          p_address: string
+          p_contact_display: string
+          p_description: string
+          p_name: string
+          p_operating_hours: string
+        }
+        Returns: {
+          active: boolean
+          address: string | null
+          category_tags: string[]
+          contact_display: string | null
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          operating_hours: string | null
+          owner_id: string
+          verified: boolean
+          zone: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "stores"
           isOneToOne: true
           isSetofReturn: false
         }

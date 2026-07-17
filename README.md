@@ -1,6 +1,6 @@
 # ZoneMart backend foundation
 
-Phases B1–B3 provide the Next.js route-handler foundation, Supabase schema,
+Phases B1–B4 provide the Next.js route-handler foundation, Supabase schema,
 authentication helpers, row-level security, repeatable demo data, and the atomic
 listed-product and Flash Request commerce paths. The project intentionally contains
 no UI.
@@ -140,7 +140,7 @@ npm run test:concurrency
 Run it against a freshly seeded/reset product. Exactly one reservation must succeed;
 the other must return `OUT_OF_STOCK`.
 
-## Phase B4 boundary
+## Phase B5 boundary
 
 Flash Request/offer APIs, vendor CRUD and order-management endpoints, polling
 workflows, reservation completion/cancellation, payments, analytics, maps, delivery,
@@ -177,3 +177,37 @@ npm run test:flash-concurrency
 
 Both scripts create dedicated temporary records and clean them without resetting or
 reseeding the hosted project.
+
+## Vendor catalogue and fulfilment
+
+Verified vendors can safely manage storefront display fields and their own catalogue:
+
+- `GET` and `PATCH /api/vendor/store`
+- `GET` and `POST /api/vendor/products`
+- `GET`, `PATCH`, and `DELETE /api/vendor/products/:productId`
+
+Product deletion archives and deactivates the row so order-item history remains
+intact. Direct authenticated writes to stores and products are revoked; RPCs derive
+the owned store and prevent vendors from changing verification or ownership.
+
+Vendors can retrieve and fulfil only their store's orders:
+
+- `GET /api/vendor/orders`
+- `GET /api/vendor/orders/:orderId`
+- `POST /api/vendor/orders/:orderId/ready`
+- `POST /api/vendor/orders/:orderId/complete`
+- `POST /api/vendor/orders/:orderId/cancel`
+- `POST /api/orders/:orderId/cancel` for the owning customer
+
+Ready-for-pickup is represented by `status = reserved` plus `ready_at`, preserving the
+existing order enum and expiration behavior. Pickup codes are excluded from vendor
+order reads and compared only inside PostgreSQL during completion. Cancellation and
+expiration lock/guard active orders and restore grouped listed quantities once; null
+Flash product references never change listed inventory.
+
+Hosted B4 verification:
+
+```bash
+npm run test:b4-integration
+npm run test:b4-concurrency
+```

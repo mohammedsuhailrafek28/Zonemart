@@ -14,7 +14,7 @@ export async function GET() {
     const { data, error } = await supabase
       .from("orders")
       .select(
-        "id, status, total, pickup_code, created_at, expires_at, store:stores!inner(id, name), items:order_items(id, product_id, product_name, quantity, unit_price)",
+        "id, status, total, pickup_code, ready_at, completed_at, cancelled_at, cancelled_by, created_at, expires_at, flash_request_id, store:stores!inner(id, name), items:order_items(id, product_id, product_name, quantity, unit_price)",
       )
       .eq("user_id", user.id)
       .order("created_at", { ascending: false });

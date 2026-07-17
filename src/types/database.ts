@@ -55,7 +55,9 @@ export type Database = {
           created_at: string
           expires_at: string
           id: string
+          note: string | null
           price: number
+          product_name: string
           quantity: number
           ready_minutes: number
           request_id: string
@@ -66,7 +68,9 @@ export type Database = {
           created_at?: string
           expires_at: string
           id?: string
+          note?: string | null
           price: number
+          product_name: string
           quantity: number
           ready_minutes: number
           request_id: string
@@ -77,7 +81,9 @@ export type Database = {
           created_at?: string
           expires_at?: string
           id?: string
+          note?: string | null
           price?: number
+          product_name?: string
           quantity?: number
           ready_minutes?: number
           request_id?: string
@@ -105,10 +111,12 @@ export type Database = {
         Row: {
           category: string
           created_at: string
+          description: string | null
           expires_at: string
           id: string
           item_name: string
           max_price: number | null
+          quantity: number
           status: Database["public"]["Enums"]["flash_request_status"]
           urgency_minutes: number
           user_id: string
@@ -117,10 +125,12 @@ export type Database = {
         Insert: {
           category: string
           created_at?: string
+          description?: string | null
           expires_at: string
           id?: string
           item_name: string
           max_price?: number | null
+          quantity?: number
           status?: Database["public"]["Enums"]["flash_request_status"]
           urgency_minutes: number
           user_id: string
@@ -129,10 +139,12 @@ export type Database = {
         Update: {
           category?: string
           created_at?: string
+          description?: string | null
           expires_at?: string
           id?: string
           item_name?: string
           max_price?: number | null
+          quantity?: number
           status?: Database["public"]["Enums"]["flash_request_status"]
           urgency_minutes?: number
           user_id?: string
@@ -202,6 +214,8 @@ export type Database = {
           completed_at: string | null
           created_at: string
           expires_at: string
+          flash_offer_id: string | null
+          flash_request_id: string | null
           id: string
           pickup_code: string
           status: Database["public"]["Enums"]["order_status"]
@@ -213,6 +227,8 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           expires_at: string
+          flash_offer_id?: string | null
+          flash_request_id?: string | null
           id?: string
           pickup_code: string
           status?: Database["public"]["Enums"]["order_status"]
@@ -224,6 +240,8 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           expires_at?: string
+          flash_offer_id?: string | null
+          flash_request_id?: string | null
           id?: string
           pickup_code?: string
           status?: Database["public"]["Enums"]["order_status"]
@@ -232,6 +250,20 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "orders_flash_offer_id_fkey"
+            columns: ["flash_offer_id"]
+            isOneToOne: false
+            referencedRelation: "flash_offers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_flash_request_id_fkey"
+            columns: ["flash_request_id"]
+            isOneToOne: false
+            referencedRelation: "flash_requests"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "orders_store_id_fkey"
             columns: ["store_id"]
@@ -332,27 +364,33 @@ export type Database = {
       }
       stores: {
         Row: {
+          active: boolean
           category_tags: string[]
           created_at: string
           id: string
           name: string
           owner_id: string
+          verified: boolean
           zone: string
         }
         Insert: {
+          active?: boolean
           category_tags?: string[]
           created_at?: string
           id?: string
           name: string
           owner_id: string
+          verified?: boolean
           zone: string
         }
         Update: {
+          active?: boolean
           category_tags?: string[]
           created_at?: string
           id?: string
           name?: string
           owner_id?: string
+          verified?: boolean
           zone?: string
         }
         Relationships: [
@@ -392,7 +430,21 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_flash_offer: {
+        Args: { p_offer_id: string; p_request_id: string }
+        Returns: {
+          expires_at: string
+          order_id: string
+          pickup_code: string
+          total: number
+        }[]
+      }
       assert_customer: { Args: never; Returns: string }
+      assert_vendor: { Args: never; Returns: string }
+      cancel_flash_request: {
+        Args: { p_request_id: string }
+        Returns: undefined
+      }
       checkout_cart: {
         Args: never
         Returns: {
@@ -403,6 +455,43 @@ export type Database = {
         }[]
       }
       clear_cart: { Args: never; Returns: undefined }
+      create_flash_request: {
+        Args: {
+          p_category: string
+          p_description: string
+          p_item_name: string
+          p_max_price: number
+          p_quantity: number
+          p_urgency_minutes: number
+        }
+        Returns: {
+          category: string
+          created_at: string
+          description: string | null
+          expires_at: string
+          id: string
+          item_name: string
+          max_price: number | null
+          quantity: number
+          status: Database["public"]["Enums"]["flash_request_status"]
+          urgency_minutes: number
+          user_id: string
+          zone: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "flash_requests"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      expire_flash_marketplace: {
+        Args: never
+        Returns: {
+          expired_offers: number
+          expired_requests: number
+        }[]
+      }
       expire_reservations: { Args: never; Returns: number }
       generate_pickup_code: { Args: never; Returns: string }
       remove_cart_item: { Args: { p_product_id: string }; Returns: undefined }
@@ -425,6 +514,37 @@ export type Database = {
       }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
+      upsert_flash_offer: {
+        Args: {
+          p_expiration_minutes: number
+          p_note: string
+          p_product_name: string
+          p_quantity: number
+          p_ready_minutes: number
+          p_request_id: string
+          p_unit_price: number
+        }
+        Returns: {
+          created_at: string
+          expires_at: string
+          id: string
+          note: string | null
+          price: number
+          product_name: string
+          quantity: number
+          ready_minutes: number
+          request_id: string
+          status: Database["public"]["Enums"]["flash_offer_status"]
+          store_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "flash_offers"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      withdraw_flash_offer: { Args: { p_offer_id: string }; Returns: undefined }
     }
     Enums: {
       flash_offer_status: "open" | "accepted" | "rejected" | "expired"

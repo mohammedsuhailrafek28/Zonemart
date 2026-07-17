@@ -1,8 +1,9 @@
 # ZoneMart backend foundation
 
-Phases B1–B2 provide the Next.js route-handler foundation, Supabase schema,
+Phases B1–B3 provide the Next.js route-handler foundation, Supabase schema,
 authentication helpers, row-level security, repeatable demo data, and the atomic
-listed-product commerce path. The project intentionally contains no UI.
+listed-product and Flash Request commerce paths. The project intentionally contains
+no UI.
 
 ## Local setup
 
@@ -139,8 +140,40 @@ npm run test:concurrency
 Run it against a freshly seeded/reset product. Exactly one reservation must succeed;
 the other must return `OUT_OF_STOCK`.
 
-## Phase B3 boundary
+## Phase B4 boundary
 
 Flash Request/offer APIs, vendor CRUD and order-management endpoints, polling
 workflows, reservation completion/cancellation, payments, analytics, maps, delivery,
 AI, and frontend pages remain out of scope.
+
+## Flash Request marketplace
+
+Customers can create, list, inspect, cancel, and atomically accept merchant offers:
+
+- `POST` and `GET /api/flash-requests`
+- `GET` and `DELETE /api/flash-requests/:requestId`
+- `POST /api/flash-requests/:requestId/offers/:offerId/accept`
+
+Eligible verified vendors can discover zone/category-matched requests and manage
+their own offers:
+
+- `GET /api/vendor/flash-requests`
+- `POST /api/vendor/flash-requests/:requestId/offers`
+- `GET /api/vendor/offers`
+- `PATCH` and `DELETE /api/vendor/offers/:offerId`
+
+Flash writes are RPC-only. PostgreSQL derives customer/vendor identity, store,
+request zone, totals, pickup code, and lifecycle state. Acceptance locks the request
+and offers, creates one linked 30-minute reserved order with a null listed-product
+reference, accepts one offer, rejects competitors, and fulfills the request in one
+transaction.
+
+Hosted verification commands:
+
+```bash
+npm run test:flash-integration
+npm run test:flash-concurrency
+```
+
+Both scripts create dedicated temporary records and clean them without resetting or
+reseeding the hosted project.

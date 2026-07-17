@@ -11,7 +11,9 @@
     "seed": "node --env-file-if-exists=.env.local scripts/seed.mjs",
     "test": "vitest run",
     "test:integration": "node --env-file-if-exists=.env.local scripts/integration-smoke.mjs",
-    "test:concurrency": "node --env-file-if-exists=.env.local scripts/verify-concurrency.mjs"
+    "test:concurrency": "node --env-file-if-exists=.env.local scripts/verify-concurrency.mjs",
+    "test:flash-integration": "node --env-file-if-exists=.env.local scripts/flash-integration-smoke.mjs",
+    "test:flash-concurrency": "node --env-file-if-exists=.env.local scripts/verify-flash-concurrency.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.7.0",

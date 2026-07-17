@@ -8,7 +8,7 @@ type Store = { id: string; name: string; zone: string; active: boolean; verified
 type Product = { id: string; name: string; description: string; category: string; price: number; stock: number; image_url: string | null; active: boolean };
 type Item = { product_name: string; quantity: number; unit_price: number };
 type Order = { id: string; status: string; total: number; ready_at: string | null; expires_at: string; completed_at: string | null; flash_request_id: string | null; items: Item[] };
-type Request = { id: string; item_name: string; description: string | null; category: string; quantity: number; zone: string; max_price: number | null; urgency_minutes: number; expires_at: string };
+type Request = { id: string; item_name: string; description: string | null; category: string; quantity: number; zone: string; max_price: number | null; urgency_minutes: number; expires_at: string; demo?: boolean };
 type Offer = { id: string; product_name: string; price: number; quantity: number; status: string; request: { item_name: string } };
 type Tab = "overview" | "orders" | "inventory" | "requests";
 
@@ -28,9 +28,9 @@ function demoWorkspace(zone = "Anna Nagar") {
       { id: "ZM-DEMO-8755", status: "completed", total: 380, ready_at: new Date().toISOString(), expires_at: future, completed_at: new Date().toISOString(), flash_request_id: "demo-request-complete", items: [{ product_name: "Graph Notebook", quantity: 2, unit_price: 190 }] },
     ] satisfies Order[],
     requests: [
-      { id: "demo-request-1", item_name: "HDMI-to-VGA Adapter", description: "Needed for a presentation today.", category: "Electronics", quantity: 1, zone, max_price: 900, urgency_minutes: 30, expires_at: future },
-      { id: "demo-request-2", item_name: "Soldering Iron 25W", description: "Fine tip preferred.", category: "Repair Essentials", quantity: 1, zone, max_price: 750, urgency_minutes: 60, expires_at: future },
-      { id: "demo-request-3", item_name: "A3 Foam Board", description: "White board for project model.", category: "Project Materials", quantity: 3, zone, max_price: 500, urgency_minutes: 120, expires_at: future },
+      { id: "demo-request-1", item_name: "HDMI-to-VGA Adapter", description: "Needed for a presentation today.", category: "Electronics", quantity: 1, zone, max_price: 900, urgency_minutes: 30, expires_at: future, demo: true },
+      { id: "demo-request-2", item_name: "Soldering Iron 25W", description: "Fine tip preferred.", category: "Repair Essentials", quantity: 1, zone, max_price: 750, urgency_minutes: 60, expires_at: future, demo: true },
+      { id: "demo-request-3", item_name: "A3 Foam Board", description: "White board for project model.", category: "Project Materials", quantity: 3, zone, max_price: 500, urgency_minutes: 120, expires_at: future, demo: true },
     ] satisfies Request[],
     offers: [
       { id: "demo-offer-1", product_name: "25W Fine-tip Soldering Iron", price: 625, quantity: 1, status: "open", request: { item_name: "Soldering Iron 25W" } },
@@ -53,24 +53,36 @@ export default function VendorDashboardPage() {
 
   const load = useCallback(async () => {
     setLoading(true); setError("");
+    const preview = demoWorkspace(profile?.zone);
     try {
-      const [storeData, productData, orderData, requestData, offerData] = await Promise.all([
+      const [storeResult, productResult, orderResult, requestResult, offerResult] = await Promise.allSettled([
         api<Store>("/api/vendor/store"),
         api<{ products: Product[] }>("/api/vendor/products"),
         api<{ orders: Order[] }>("/api/vendor/orders?limit=50"),
         api<{ requests: Request[] }>("/api/vendor/flash-requests?limit=50"),
         api<{ offers: Offer[] }>("/api/vendor/offers"),
       ]);
-      setDemo(false);
-      setStore(storeData); setProducts(productData.products); setOrders(orderData.orders);
-      setRequests(requestData.requests); setOffers(offerData.offers);
-    } catch {
-      const preview = demoWorkspace(profile?.zone);
-      setDemo(true); setStore(preview.store); setProducts(preview.products); setOrders(preview.orders);
-      setRequests(preview.requests); setOffers(preview.offers); setError("");
+      const hasStore = storeResult.status === "fulfilled";
+      const liveRequests = requestResult.status === "fulfilled" ? requestResult.value.requests : [];
+      setDemo(!hasStore);
+      setStore(hasStore ? storeResult.value : preview.store);
+      setProducts(productResult.status === "fulfilled" ? productResult.value.products : preview.products);
+      setOrders(orderResult.status === "fulfilled" ? orderResult.value.orders : preview.orders);
+      setRequests(liveRequests.length || hasStore ? liveRequests : preview.requests);
+      setOffers(offerResult.status === "fulfilled" ? offerResult.value.offers : preview.offers);
     } finally { setLoading(false); }
   }, [profile?.zone]);
   useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    const timer = window.setInterval(async () => {
+      try {
+        const data = await api<{ requests: Request[] }>("/api/vendor/flash-requests?limit=50");
+        if (data.requests.length) setRequests(data.requests);
+        else if (!demo) setRequests([]);
+      } catch { /* The visible demo remains available during transient failures. */ }
+    }, 5_000);
+    return () => window.clearInterval(timer);
+  }, [demo]);
 
   async function submitOffer(event: FormEvent<HTMLFormElement>, requestId: string) {
     event.preventDefault(); setError(""); setMessage("");
@@ -158,5 +170,5 @@ function OrderList({ orders, onAction }: { orders: Order[]; onAction: (order: Or
 }
 
 function DemandRadar({ requests, onOffer }: { requests: Request[]; onOffer: (event: FormEvent<HTMLFormElement>, id: string) => void }) {
-  return <section className="vendor-panel radar"><div className="panel-title"><h3>Live Demand Radar</h3><span className="availability"><span className="dot" />Live</span></div>{requests.length ? requests.map(request=><article className="radar-card" key={request.id}><span className="eyebrow">{request.zone} · {request.category}</span><h3>{request.item_name}</h3><p className="muted">{request.quantity} requested · {request.max_price == null ? "No maximum price" : `Up to ${money(request.max_price)}`}</p><form className="offer-mini" onSubmit={event=>void onOffer(event,request.id)}><input className="input" name="productName" defaultValue={request.item_name} aria-label={`Offered product for ${request.item_name}`} required /><div><input className="input" name="quantity" type="number" min="1" defaultValue={request.quantity} aria-label="Quantity available" required /><input className="input" name="price" type="number" min="0" step=".01" placeholder="Unit price" aria-label="Unit price" required /></div><input className="input" name="readyMinutes" type="number" min="1" defaultValue="15" aria-label="Ready in minutes" required /><input className="input" name="note" placeholder="Optional note" aria-label="Offer note" /><button className="button small">Submit offer</button></form></article>) : <div className="empty"><p>No open customer requests right now.</p></div>}</section>;
+  return <section className="vendor-panel radar"><div className="panel-title"><h3>Live Demand Radar</h3><span className="availability"><span className="dot" />Live</span></div>{requests.length ? requests.map(request=><article className="radar-card" key={request.id}><span className="eyebrow">{request.zone} · {request.category}</span><span className={request.demo ? "badge warning" : "badge"}>{request.demo ? "Sample request" : "Live customer request"}</span><h3>{request.item_name}</h3><p className="muted">{request.quantity} requested · {request.max_price == null ? "No maximum price" : `Up to ${money(request.max_price)}`}</p><form className="offer-mini" onSubmit={event=>void onOffer(event,request.id)}><input className="input" name="productName" defaultValue={request.item_name} aria-label={`Offered product for ${request.item_name}`} required /><div><input className="input" name="quantity" type="number" min="1" defaultValue={request.quantity} aria-label="Quantity available" required /><input className="input" name="price" type="number" min="0" step=".01" placeholder="Unit price" aria-label="Unit price" required /></div><input className="input" name="readyMinutes" type="number" min="1" defaultValue="15" aria-label="Ready in minutes" required /><input className="input" name="note" placeholder="Optional note" aria-label="Offer note" /><button className="button small">Submit offer</button></form></article>) : <div className="empty"><p>No open customer requests right now.</p></div>}</section>;
 }

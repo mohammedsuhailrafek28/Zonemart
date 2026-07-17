@@ -1,0 +1,12 @@
+node_modules/
+.next/
+out/
+coverage/
+*.log
+.env
+.env.local
+.env.*.local
+.vercel/
+supabase/.branches/
+supabase/.temp/
+*.tsbuildinfo

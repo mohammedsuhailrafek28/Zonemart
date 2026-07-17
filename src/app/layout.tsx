@@ -4,6 +4,7 @@ import "./globals.css";
 import { AppProvider } from "@/components/app-provider";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
+import { PageMotion } from "@/components/page-motion";
 
 const manrope = Manrope({ subsets: ["latin"], variable: "--font-manrope" });
 const instrument = Instrument_Serif({ subsets: ["latin"], weight: "400", variable: "--font-instrument" });
@@ -19,7 +20,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body className={`${manrope.variable} ${instrument.variable}`}>
         <AppProvider>
           <Header />
-          <main>{children}</main>
+          <main><PageMotion>{children}</PageMotion></main>
           <Footer />
         </AppProvider>
       </body>

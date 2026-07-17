@@ -4,10 +4,10 @@ export default function Home() {
   return <>
     <section className="container hero">
       <div>
-        <div className="eyebrow">Nearby inventory, made certain</div>
-        <h1>Find it in your zone.<br />Reserve it now.</h1>
-        <p className="lead">Discover products that are actually available at nearby stores, reserve them for pickup, and ask local merchants when an item is not listed.</p>
-        <div className="actions"><Link className="button" href="/shop">Search nearby</Link><Link className="button secondary" href="/auth/sign-up?intent=vendor">List your store</Link></div>
+        <div className="eyebrow">Live local inventory</div>
+        <h1>Find it nearby.<br />Reserve it before you leave.</h1>
+        <p className="lead">Search products available in neighbourhood stores, reserve them instantly, and collect them locally. If it is not listed, send one Flash Request to relevant nearby merchants.</p>
+        <div className="actions"><Link className="button" href="/shop">Search products near you</Link><Link className="button secondary" href="/auth/sign-up?intent=vendor">List your store</Link></div>
       </div>
       <div className="hero-visual" aria-label="Product search preview">
         <div className="search-demo">65W USB-C charger</div>

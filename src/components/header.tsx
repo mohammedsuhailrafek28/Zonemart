@@ -1,11 +1,22 @@
 "use client";
+import Image from "next/image";
 import Link from "next/link";
 import { useApp } from "./app-provider";
 
 export function Header() {
   const { session, profile, loading, cartCount, signOut } = useApp();
   return <header className="site-header"><nav className="container nav" aria-label="Main navigation">
-    <Link href="/" className="brand"><span className="brand-mark" />ZoneMart</Link>
+    <Link href="/" className="brand" aria-label="ZoneMart home">
+      <Image
+        className="brand-logo"
+        src="/zonemart-logo.jpeg"
+        alt=""
+        width={52}
+        height={52}
+        priority
+      />
+      <span>ZoneMart</span>
+    </Link>
     <div className="nav-links">
       {profile?.role === "customer" && <><Link href="/shop">Shop</Link><Link href="/flash-requests">Flash Requests</Link><Link href="/orders">Orders</Link><Link href="/cart">Cart ({cartCount})</Link></>}
       {profile?.role === "vendor" && <Link href="/vendor">Vendor dashboard</Link>}

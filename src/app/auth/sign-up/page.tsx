@@ -24,7 +24,7 @@ function SignUpForm() {
     if (!data.session) { setMessage("Check your email to confirm your account, then sign in."); setBusy(false); return; }
     const response = await fetch("/api/profile", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ fullName, role: intent, zone }) });
     if (!response.ok) { const body = await response.json(); setError(body.error?.message || "Could not create your profile."); setBusy(false); return; }
-    router.replace(intent === "vendor" ? "/vendor-coming-soon" : "/shop"); router.refresh();
+    router.replace(intent === "vendor" ? "/vendor" : "/shop"); router.refresh();
   }
   return <div className="auth-shell"><section className="card auth-card"><span className="eyebrow">{intent === "vendor" ? "Merchant onboarding" : "Customer account"}</span><h2>Create your ZoneMart account</h2>
     <form className="form" onSubmit={submit}>

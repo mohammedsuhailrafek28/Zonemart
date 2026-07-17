@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/browser";
 function SignInForm() {
   const router = useRouter();
   const search = useSearchParams();
+  const portal = search.get("portal");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -16,10 +17,16 @@ function SignInForm() {
     const { data, error: authError } = await supabase.auth.signInWithPassword({ email: String(form.get("email")), password: String(form.get("password")) });
     if (authError) { setError("Email or password is incorrect."); setBusy(false); return; }
     const { data: profile } = await supabase.from("profiles").select("role").eq("id", data.user.id).maybeSingle();
-    router.replace(profile?.role === "vendor" ? "/vendor-coming-soon" : search.get("next") || "/shop");
+    if (portal === "vendor" && profile?.role !== "vendor") {
+      await supabase.auth.signOut(); setError("This account does not have vendor access."); setBusy(false); return;
+    }
+    if (portal === "admin") {
+      await supabase.auth.signOut(); setError("No administrator role is provisioned in the current ZoneMart backend."); setBusy(false); return;
+    }
+    router.replace(profile?.role === "vendor" ? "/vendor" : search.get("next") || "/shop");
     router.refresh();
   }
-  return <div className="auth-shell"><section className="card auth-card"><span className="eyebrow">Welcome back</span><h2>Sign in to ZoneMart</h2><p className="muted">Access your cart, reservations and Flash Requests.</p>
+  return <div className={`auth-shell ${portal === "vendor" ? "vendor-auth" : ""}`}><section className="card auth-card"><span className="eyebrow">{portal === "vendor" ? "Vendor portal" : portal === "admin" ? "Admin portal" : "Welcome back"}</span><h2>{portal === "vendor" ? "Turn nearby demand into store visits." : "Sign in to ZoneMart"}</h2><p className="muted">{portal === "vendor" ? "Manage real inventory, pickups and eligible Flash Requests." : "Access your cart, reservations and Flash Requests."}</p>
     <form className="form" onSubmit={submit}>
       {error && <div className="error" role="alert">{error}</div>}
       <div className="field"><label htmlFor="email">Email address</label><input className="input" id="email" name="email" type="email" autoComplete="email" required /></div>

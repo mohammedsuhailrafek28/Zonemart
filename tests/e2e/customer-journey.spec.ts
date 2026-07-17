@@ -82,8 +82,8 @@ test("public, authentication and complete customer commerce journey", async ({ p
   const landingResponse = await page.goto("/");
   expect(landingResponse?.status(), `landing navigation failed at ${page.url()}`).toBe(200);
   await expect(page.getByRole("heading", { level: 1, name: /Find it nearby/ })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Search nearby" }).first()).toHaveAttribute("href", "/shop");
-  await expect(page.getByRole("link", { name: "List your store" })).toHaveAttribute("href", "/auth/sign-up?intent=vendor");
+  await expect(page.getByRole("link", { name: "Search products near you" })).toHaveAttribute("href", "/shop");
+  await expect(page.getByRole("link", { name: "List your store" }).first()).toHaveAttribute("href", "/auth/sign-up?intent=vendor");
   await expect(page.locator("body")).not.toHaveCSS("overflow-x", "scroll");
   await shot(page, viewport, "landing");
 
@@ -195,9 +195,11 @@ test("public, authentication and complete customer commerce journey", async ({ p
   await page.getByLabel("Email address").fill("vendor.anna@zonemart.demo");
   await page.getByLabel("Password").fill(required("DEMO_VENDOR_PASSWORD"));
   await page.getByRole("button", { name: "Sign in" }).click();
-  await expect(page).toHaveURL(/\/vendor-coming-soon$/);
+  await expect(page).toHaveURL(/\/vendor$/);
+  await expect(page.getByRole("heading", { name: "Operational Overview" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Live Demand Radar" })).toBeVisible();
   await page.goto("/shop");
-  await expect(page.getByRole("heading", { name: "Vendor workspace coming in B5B" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "This workspace is not available to this account." })).toBeVisible();
   await page.getByRole("button", { name: "Sign out" }).click();
   finishRuntimeCheck();
 });
